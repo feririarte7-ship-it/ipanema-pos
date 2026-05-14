@@ -567,7 +567,7 @@ function procesarExcel(file) {
 
       for (const row of rows) {
         // Detectar columna EAN: COD. EAN o Barcode
-        const ean = String(row['COD. EAN'] || row['Barcode'] || row['EAN'] || '').trim().replace(/\.0$/, '');
+        const ean = normEAN(row['COD. EAN'] ?? row['Barcode'] ?? row['EAN'] ?? '');
         if (!ean || ean.length < 8) continue;
 
         const nombre = String(row['Description'] || row['Product Description'] || '').trim();
@@ -617,13 +617,24 @@ dropZone.addEventListener('drop', e => {
   if (f) procesarExcel(f);
 });
 
+// ── NORMALIZACIÓN EAN ───────────────────────────────
+// Excel puede guardar EANs como número (float, notación científica).
+// Forzamos a entero string en ambos lados para que el match sea exacto.
+function normEAN(v) {
+  const s = String(v).trim();
+  // Notación científica → número entero
+  const n = Number(s);
+  if (!isNaN(n) && isFinite(n) && s !== '') return String(Math.round(n));
+  return s.replace(/\.0+$/, '');
+}
+
 // ── BÚSQUEDA ────────────────────────────────────────
 document.getElementById('ean-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') buscar();
 });
 
 function buscar() {
-  const ean = document.getElementById('ean-input').value.trim();
+  const ean = normEAN(document.getElementById('ean-input').value);
   if (!ean) return;
 
   const area = document.getElementById('result-area');
