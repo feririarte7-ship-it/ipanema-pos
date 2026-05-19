@@ -467,6 +467,47 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ── BARRA MARCAS ── */
+  .marcas-bar {
+    padding: 8px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .btn-marca {
+    padding: 5px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface2);
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all .15s;
+    letter-spacing: .03em;
+  }
+  .btn-marca:hover,
+  .btn-marca.active        { border-color: var(--text);  color: var(--text); }
+  .btn-marca.deposito.active { border-color: var(--green); color: var(--green); }
+  .catalogo-grid { display: flex; flex-direction: column; gap: 6px; }
+  .catalogo-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color .15s;
+  }
+  .catalogo-item:hover        { border-color: var(--text-dim); }
+  .catalogo-item-nombre       { font-size: 13px; color: var(--text); }
+  .catalogo-item-meta         { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .catalogo-item-precio       { font-size: 14px; color: var(--text); font-weight: 500; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -502,6 +543,12 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     Total hoy: <span id="stat-total">0,00 €</span>
   </div>
 
+
+  <!-- Marcas -->
+  <div class="marcas-bar" style="grid-column:1/-1">
+    <button class="btn-marca"          onclick="mostrarMarca('Terra e Agua', this)">Terra e Agua</button>
+    <button class="btn-marca deposito" onclick="mostrarMarca('Ocho', this)">Ocho · Depósito</button>
+  </div>
   <!-- Panel izquierdo: escáner -->
   <div class="panel-scan" style="grid-row:2">
     <div class="scan-bar">
@@ -557,8 +604,30 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 <div id="toast"></div>
 
 <script>
+// ── CATÁLOGO FIJO ──────────────────────────────────
+const CATALOGO_FIJO = {
+  'TAV6-260111-CT': {nombre:'Terra e Agua TAV6-260111', talla:'', color:'Creme/Taupe',        precio:29.95, marca:'Terra e Agua', stock:12},
+  'TAV6-260111-PP': {nombre:'Terra e Agua TAV6-260111', talla:'', color:'Preto/Preto',         precio:29.95, marca:'Terra e Agua', stock:12},
+  'TAV6-240712-P':  {nombre:'Terra e Agua TAV6-240712', talla:'', color:'Preto',               precio:29.95, marca:'Terra e Agua', stock:12},
+  'TAV6-240712-C':  {nombre:'Terra e Agua TAV6-240712', talla:'', color:'Creme',               precio:29.95, marca:'Terra e Agua', stock:12},
+  'TAV6-260902-BC': {nombre:'Terra e Agua TAV6-260902', talla:'', color:'Bronze/Caramelo',     precio:24.95, marca:'Terra e Agua', stock:12},
+  'TAV6-260902-CT': {nombre:'Terra e Agua TAV6-260902', talla:'', color:'Creme/Taupe',         precio:24.95, marca:'Terra e Agua', stock:12},
+  'TAV6-260902-FC': {nombre:'Terra e Agua TAV6-260902', talla:'', color:'Framboesa/Caramelo',  precio:24.95, marca:'Terra e Agua', stock:12},
+  'TAV6-260902-PI': {nombre:'Terra e Agua TAV6-260902', talla:'', color:'Pitanga',             precio:24.95, marca:'Terra e Agua', stock:12},
+  'TAV6-260902-PL': {nombre:'Terra e Agua TAV6-260902', talla:'', color:'Prata/Lazulli',       precio:24.95, marca:'Terra e Agua', stock:12},
+  'TAV6-260902-PC': {nombre:'Terra e Agua TAV6-260902', talla:'', color:'Preto/Caramelo',      precio:24.95, marca:'Terra e Agua', stock:12},
+  'TAV6-260902-RL': {nombre:'Terra e Agua TAV6-260902', talla:'', color:'Relax',               precio:24.95, marca:'Terra e Agua', stock:12},
+  'OCHO-FEDORA':    {nombre:'Ocho Fedora',   talla:'', color:'', precio:28.00, marca:'Ocho', stock:30},
+  'OCHO-PAMELA':    {nombre:'Ocho Pamela',   talla:'', color:'', precio:28.00, marca:'Ocho', stock:8},
+  'OCHO-PANAMA':    {nombre:'Ocho Panama',   talla:'', color:'', precio:28.00, marca:'Ocho', stock:12},
+  'OCHO-COWBOY':    {nombre:'Ocho Cowboy',   talla:'', color:'', precio:28.00, marca:'Ocho', stock:8},
+  'OCHO-BOINAS':    {nombre:'Boinas',        talla:'', color:'', precio:28.00, marca:'Ocho', stock:6},
+  'OCHO-GORRAS-A':  {nombre:'Gorras adulto', talla:'', color:'', precio:14.90, marca:'Ocho', stock:44},
+  'OCHO-GORRAS-N':  {nombre:'Gorras niños',  talla:'', color:'', precio:14.90, marca:'Ocho', stock:9},
+};
+
 // ── ESTADO ─────────────────────────────────────────
-let catalogo  = {};   // EAN → {nombre, talla, color, precio, marca}
+let catalogo  = {...CATALOGO_FIJO};   // EAN → {nombre, talla, color, precio, marca}
 let carrito   = [];   // [{ean, nombre, talla, color, precio, qty}]
 let metodoPago = 'efectivo';
 let ventasHoy  = JSON.parse(localStorage.getItem('ipanema_ventas_local') || '[]');
@@ -794,6 +863,47 @@ function actualizarStats() {
   const totalHoy = ventasHoy.reduce((s, v) => s + v.total, 0);
   document.getElementById('stat-ventas').textContent = ventasHoy.length;
   document.getElementById('stat-total').textContent = formatPrecio(totalHoy);
+}
+
+
+// Activar POS con catálogo fijo al cargar
+(function() {
+  const n = Object.keys(CATALOGO_FIJO).length;
+  document.getElementById('screen-load').style.display = 'none';
+  document.getElementById('screen-pos').classList.add('active');
+  document.getElementById('stat-items').textContent = n.toLocaleString('es-ES');
+  document.getElementById('btn-load-excel').textContent = `${n} productos`;
+  document.getElementById('btn-load-excel').classList.add('loaded');
+  document.getElementById('ean-input').focus();
+})();
+
+// ── BARRA DE MARCAS ────────────────────────────────
+let marcaActiva = null;
+function mostrarMarca(marca, btn) {
+  const area = document.getElementById('result-area');
+  if (marcaActiva === marca) {
+    marcaActiva = null;
+    document.querySelectorAll('.btn-marca').forEach(b => b.classList.remove('active'));
+    area.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-label">Esperando escaneo...</div></div>';
+    return;
+  }
+  marcaActiva = marca;
+  document.querySelectorAll('.btn-marca').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const items = Object.entries(CATALOGO_FIJO).filter(([, p]) => p.marca === marca);
+  if (!items.length) { area.innerHTML = '<div class="empty-state"><div class="empty-label">Sin productos</div></div>'; return; }
+  const grid = document.createElement('div');
+  grid.className = 'catalogo-grid';
+  grid.innerHTML = items.map(([ref, p]) => `
+    <div class="catalogo-item" onclick="agregarAlCarrito('${ref}')">
+      <div class="catalogo-item-info">
+        <div class="catalogo-item-nombre">${p.nombre}${p.color ? ' — ' + p.color : ''}</div>
+        <div class="catalogo-item-meta">${p.marca} · ${p.stock} uds.</div>
+      </div>
+      <div class="catalogo-item-precio">${formatPrecio(p.precio)}</div>
+    </div>`).join('');
+  area.innerHTML = '';
+  area.appendChild(grid);
 }
 
 actualizarStats();
